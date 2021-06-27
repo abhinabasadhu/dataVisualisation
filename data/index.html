@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Crytpocurrency Graph </title>
+
+    <!-- Include Plotly JavaScript library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+    <style>
+        body {
+            background-color: black;
+        }
+    </style>
+    <!-- Create DIVs to hold the charts -->
+    <div style="max-width: 1600;">
+        <div id="bitcoinDiv" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="bitcoinDivSentiment" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="ethereumDiv" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="ethereumDivSentiment" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="usdtDiv" style="display:inline-block;width:800px;height:400px; "></div>
+        <div id="usdtDivSentiment" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="tronDiv" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="tronDivSentiment" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="BNBDiv" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="bnbDivSentiment" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="sythticDiv" style="display:inline-block;width:800px;height:400px;"></div>
+        <div id="ActualDiv" style="display:inline-block;width:800px;height:400px;"></div>
+    </div>
+    <script>
+        //Open connection
+        let connection = new WebSocket("wss://orzqgfj7ll.execute-api.us-east-1.amazonaws.com/production");
+
+        //Log connected response
+        connection.onopen = function(event) {
+            console.log("Connected: " + JSON.stringify(event));
+            sendMessage();
+        };
+
+        function sendMessage() {
+            let msgObject = {
+                action: "getData"
+            }
+            connection.send(JSON.stringify(msgObject));
+            console.log("Message sent");
+
+        }
+
+        connection.onmessage = (event) => {
+            console.log("Received")
+            let result = JSON.parse(event.data);
+            console.log(result)
+                //btprediction calculation and arrangement for prediction
+            let btcpredicted = result.BTC.BTCPredicted.toString()
+            let val = btcpredicted.substring(1, btcpredicted.length - 1)
+            let predictedBtc = val.split(',').map(x => parseFloat(x));
+            let start = new Date("2021-04-11");
+            let date = start.getTime();
+            let numdata = 50;
+            let timeInterval = 86400000;
+            let time = []
+            for (let ts = 0; ts < timeInterval * numdata; ts += timeInterval) {
+                let int = new Date(date + ts);
+                time.push(int)
+            }
+
+            //ethprediction calculation and arrangement
+            let ethpredicted = result.ETH.ETHPredicted.toString()
+            let val2 = ethpredicted.substring(1, ethpredicted.length - 1)
+            let predictedEth = val2.split(',').map(y => parseFloat(y));
+            //plot predicted etherum data 
+            function plotDataPredictionEth() {
+                let trace = {
+                    x: time,
+                    y: predictedEth,
+                    mode: 'line',
+                    name: 'ethereum',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Ethereum"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+
+            }
+            // get calculation for usdt 
+            let usdtprediction = result.USDT.USDTPRedicted.toString()
+            let val3 = usdtprediction.substring(1, usdtprediction.length - 1)
+            let predictedUsdt = val3.split(',').map(z => parseFloat(z));
+            //plot usdt predictions
+            function plotDataPredictionUsdt() {
+
+                let trace = {
+                    x: time,
+                    y: predictedUsdt,
+                    mode: 'line',
+                    name: 'usdt',
+                    name: 'usdt',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "USDT"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+            }
+
+
+            function plotSentimentbtc() {
+                var trace = {
+                    values: result.BTC.BTCSentiment,
+                    name: "sentimentDataBTC",
+                    labels: ['Neutral', 'Positive', 'Negative'],
+                    type: 'pie'
+                };
+
+                var layout = {
+                    width: 320,
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "BitCoin-Sentiment"
+                    },
+                };
+                let charDiv = document.getElementById("sentimentDataBTCDiv");
+                let data = [trace]
+                Plotly.newPlot(charDiv, data, layout)
+            }
+
+            function plotDataPredictionBtc() {
+                let trace = {
+                    x: time,
+                    y: predictedBtc,
+                    mode: 'line',
+                    name: 'bitcoin',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "BitCoin"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+
+            }
+            //get calculations for trx
+            let trxprediction = result.TRX.TRXPredicted.toString()
+            let val4 = trxprediction.substring(1, trxprediction.length - 1)
+            let predictedTrx = val4.split(',').map(a => parseFloat(a));
+            //plot trx
+            function plotDataPredictionTrx() {
+
+                let trace = {
+                    x: time,
+                    y: predictedTrx,
+                    mode: 'line',
+                    name: 'tron',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Tron"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+            }
+            //get bnb calculation 
+            let bnbprediction = result.BNB.BNBPredicted.toString()
+            let val5 = bnbprediction.substring(1, bnbprediction.length - 1)
+            let predictedBNB = val5.split(',').map(b => parseFloat(b));
+
+            function plotDataPredictionBnb() {
+
+                let trace = {
+                    x: time,
+                    y: predictedBNB,
+                    mode: 'line',
+                    name: 'BNB',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "BinanceCoin"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+            }
+            //get calculation for synthetic data 
+            let synthticPrediction = result.Synthetic.toString();
+            let val6 = synthticPrediction.substring(1, synthticPrediction.length - 1);
+            let predictedSynthetic = val6.split(',').map(c => parseFloat(c));
+
+            function plotSynthetic() {
+
+                let trace = {
+                    x: time,
+                    y: predictedSynthetic,
+                    mode: 'line',
+                    name: 'sythtic',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Synthetic-Prediction"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+
+            }
+            //get calculations of actual synthic data
+            let actualSynthic = []
+            for (let item of result.ActualSyntheticData) {
+                let val6 = item.split(',').map(q => actualSynthic.push(parseFloat(q)))
+            }
+
+            function plotActualSyntheticData() {
+                let trace = {
+                    x: time,
+                    y: actualSynthic,
+                    mode: 'line',
+                    name: 'Actual',
+                    color: 'white',
+                    marker: {
+                        color: 'rgb(127,255,0)',
+                        size: 12
+                    }
+                }
+
+
+                //Get reference to Div where chart will be drawn
+                let chartDiv = document.getElementById(trace.name + "Div");
+
+                //Upper case the start of the currency name and create title of chart
+                let chartTitle = trace.name.charAt(0).toUpperCase() + trace.name.slice(1);
+
+                //Set up graph
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Synthetic"
+                    },
+                    xaxis: {
+                        autorange: true,
+                        zeroline: false,
+                        title: 'Time',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        ticklen: 0,
+                        tickformat: trace.x,
+                        // the tick color.
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        tickprefix: '    ',
+                        separatethousands: false,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    yaxis: {
+                        zeroline: false,
+                        title: 'Price',
+                        titlefont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '14',
+                            color: '#c8c8c8',
+                        },
+                        gridwidth: 0.5,
+                        gridcolor: '#9c9c9c',
+                        mirror: 'ticks',
+                        tickprefix: '    ',
+                        ticklen: 0,
+                        tickformat: trace.y,
+                        tickcolor: '#c8c8c8',
+                        tickfont: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: '10',
+                            color: '#c8c8c8',
+                        },
+                        nticks: 10,
+                        linecolor: '#9c9c9c',
+                        linewidth: 2,
+                    },
+                    legend: {
+                        font: {
+                            family: 'Helvetica Neue,Helvetica,Arial,sans-serif',
+                            size: 12,
+                            color: '#c8c8c8',
+                        },
+                    },
+                };
+                let data = [trace];
+
+                //Plot data
+                Plotly.newPlot(chartDiv, data, layout);
+            }
+            // plot sentimentBtc
+            let neg = 0;
+            let neu = 0;
+            let pos = 0;
+            for (let item of result.BTC.BTCSentiment) {
+                console.log(item)
+                if (item === "NEUTRAL") {
+                    neu++
+                } else if (item === "NEGATIVE") {
+                    neg++
+                } else {
+                    pos++
+                }
+            }
+            let sentidata = [neg, neu, pos];
+
+            function plotsentimentBTC() {
+                var allLabels = ['Negative', 'Neutral', 'Positive'];
+                var allValues = sentidata;
+                var ultimateColors = ['rgb(146, 123, 21)', 'rgb(177, 180, 34)', 'rgb(206, 206, 40)', 'rgb(175, 51, 21)', 'rgb(35, 36, 21)'];
+
+                var data = [{
+                    values: allValues,
+                    labels: allLabels,
+                    type: 'pie',
+                    name: 'The Night Cafe',
+                    marker: {
+                        colors: ultimateColors
+                    },
+                    domain: {
+                        x: 50,
+                        y: 50
+                    },
+                    hoverinfo: 'label+percent+name',
+                    textinfo: 'none'
+                }];
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Sentiment-BTC"
+                    },
+                    height: 400,
+                    width: 500,
+                    grid: {
+                        rows: 2,
+                        columns: 2
+                    }
+                };
+
+                Plotly.newPlot('bitcoinDivSentiment', data, layout);
+
+            }
+            let neg1 = 0;
+            let neu1 = 0;
+            let pos1 = 0;
+            for (let item of result.ETH.ETHSentiment) {
+                console.log(item)
+                if (item === "NEUTRAL") {
+                    neu1++
+                } else if (item === "NEGATIVE") {
+                    neg1++
+                } else {
+                    pos1++
+                }
+            }
+            let sentidata1 = [neg1, neu1, pos1];
+
+            function plotsentimentEth() {
+                var allLabels = ['Negative', 'Neutral', 'Positive'];
+                var allValues = sentidata1;
+                var ultimateColors = ['rgb(146, 123, 21)', 'rgb(177, 180, 34)', 'rgb(206, 206, 40)', 'rgb(175, 51, 21)', 'rgb(35, 36, 21)'];
+
+                var data = [{
+                    values: allValues,
+                    labels: allLabels,
+                    type: 'pie',
+                    name: 'The Night Cafe',
+                    marker: {
+                        colors: ultimateColors
+                    },
+                    domain: {
+                        x: 50,
+                        y: 50
+                    },
+                    hoverinfo: 'label+percent+name',
+                    textinfo: 'none'
+                }];
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Sentiment-ETH"
+                    },
+                    height: 400,
+                    width: 500,
+                    grid: {
+                        rows: 2,
+                        columns: 2
+                    }
+                };
+
+                Plotly.newPlot('ethereumDivSentiment', data, layout);
+
+            }
+            let neg2 = 0;
+            let neu2 = 0;
+            let pos2 = 0;
+            for (let item of result.USDT.USDTSentiment) {
+                console.log(item)
+                if (item === "NEUTRAL") {
+                    neu2++
+                } else if (item === "NEGATIVE") {
+                    neg2++
+                } else {
+                    pos2++
+                }
+            }
+            let sentidata2 = [neg2, neu2, pos2];
+
+            function plotsentimentusdt() {
+                var allLabels = ['Negative', 'Neutral', 'Positive'];
+                var allValues = sentidata2;
+                var ultimateColors = ['rgb(146, 123, 21)', 'rgb(177, 180, 34)', 'rgb(206, 206, 40)', 'rgb(175, 51, 21)', 'rgb(35, 36, 21)'];
+
+                var data = [{
+                    values: allValues,
+                    labels: allLabels,
+                    type: 'pie',
+                    name: 'The Night Cafe',
+                    marker: {
+                        colors: ultimateColors
+                    },
+                    domain: {
+                        x: 50,
+                        y: 50
+                    },
+                    hoverinfo: 'label+percent+name',
+                    textinfo: 'none'
+                }];
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Sentiment-USDT"
+                    },
+                    height: 400,
+                    width: 500,
+                    grid: {
+                        rows: 2,
+                        columns: 2
+                    }
+                };
+
+                Plotly.newPlot('usdtDivSentiment', data, layout);
+
+            }
+            let neg3 = 0;
+            let neu3 = 0;
+            let pos3 = 0;
+            for (let item of result.TRX.TRxSentiment) {
+                console.log(item)
+                if (item === "NEUTRAL") {
+                    neu3++
+                } else if (item === "NEGATIVE") {
+                    neg3++
+                } else {
+                    pos3++
+                }
+            }
+            let sentidata3 = [neg3, neu3, pos3];
+
+            function plotsentimenttrx() {
+                var allLabels = ['Negative', 'Neutral', 'Positive'];
+                var allValues = sentidata3;
+                var ultimateColors = ['rgb(146, 123, 21)', 'rgb(177, 180, 34)', 'rgb(206, 206, 40)', 'rgb(175, 51, 21)', 'rgb(35, 36, 21)'];
+
+                var data = [{
+                    values: allValues,
+                    labels: allLabels,
+                    type: 'pie',
+                    name: 'The Night Cafe',
+                    marker: {
+                        colors: ultimateColors
+                    },
+                    domain: {
+                        x: 50,
+                        y: 50
+                    },
+                    hoverinfo: 'label+percent+name',
+                    textinfo: 'none'
+                }];
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Sentiment-TRX"
+                    },
+                    height: 400,
+                    width: 500,
+                    grid: {
+                        rows: 2,
+                        columns: 2
+                    }
+                };
+
+                Plotly.newPlot('tronDivSentiment', data, layout);
+
+            }
+            let neg4 = 0;
+            let neu4 = 0;
+            let pos4 = 0;
+            for (let item of result.USDT.USDTSentiment) {
+                console.log(item)
+                if (item === "NEUTRAL") {
+                    neu4++
+                } else if (item === "NEGATIVE") {
+                    neg4++
+                } else {
+                    pos4++
+                }
+            }
+            let sentidata4 = [neg4, neu4, pos4];
+
+            function plotsentimentbnb() {
+                var allLabels = ['Negative', 'Neutral', 'Positive'];
+                var allValues = sentidata4;
+                var ultimateColors = ['rgb(146, 123, 21)', 'rgb(177, 180, 34)', 'rgb(206, 206, 40)', 'rgb(175, 51, 21)', 'rgb(35, 36, 21)'];
+
+                var data = [{
+                    values: allValues,
+                    labels: allLabels,
+                    type: 'pie',
+                    name: 'The Night Cafe',
+                    marker: {
+                        colors: ultimateColors
+                    },
+                    domain: {
+                        x: 50,
+                        y: 50
+                    },
+                    hoverinfo: 'label+percent+name',
+                    textinfo: 'none'
+                }];
+                var layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    title: {
+                        text: "Sentiment-BNB"
+                    },
+                    height: 400,
+                    width: 500,
+                    grid: {
+                        rows: 2,
+                        columns: 2
+                    }
+                };
+
+                Plotly.newPlot('bnbDivSentiment', data, layout);
+
+            }
+
+
+
+
+            // plot sentimentBnb
+            // plot sentimenteth
+            // plot sentimenttrx
+            // plot sentimentusdt
+
+            //Data for graph is an array of lines for graph
+            plotDataPredictionBtc();
+            plotDataPredictionEth();
+            plotDataPredictionUsdt();
+            plotDataPredictionTrx();
+            plotDataPredictionBnb();
+            plotSynthetic();
+            plotActualSyntheticData();
+            plotsentimentBTC();
+            plotsentimentEth();
+            plotsentimentusdt();
+            plotsentimenttrx();
+            plotsentimentbnb();
+
+        };
+        connection.onerror = function(error) {
+            console.log("WebSocket Error: " + JSON.stringify(error));
+        }
+    </script>
+</body>
+
+</html>

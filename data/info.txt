@@ -1,0 +1,9 @@
+7yhykDelqjHJYKUnizcpEwa8N API key twitter
+
+yZxqiWgDygo4qRcktjQMTNjJCkvCGHCx8Rxbnsu1h8iAut1KQk API secret key twitter 
+
+AAAAAAAAAAAAAAAAAAAAANP%2BNQEAAAAATRUQO9M64JxzGxJnPSokVdnMwdU%3DUh0PllsQUdaIqUmvtlQozAT068zqfOX6u7eTWuunMQfGK7rN4d bearer token twitter
+
+1368936695576543232-PNx6QnXIjRc8MjgH7ld4fyF7J4cv2t access token
+
+yckRNyfAX8UZJ0fd0mAwn5iXrrxml5vKTGuWdpM2RQpcj scret key 
